@@ -1,54 +1,53 @@
-# Шаблон для выполнения тестового задания
+# Интеграция с тарифами Wildberries и Google Sheets
 
 ## Описание
-Шаблон подготовлен для того, чтобы попробовать сократить трудоемкость выполнения тестового задания.
+Для работы с Google таблицами необходимо выполнить следующие шаги:
 
-В шаблоне настоены контейнеры для `postgres` и приложения на `nodejs`.  
-Для взаимодействия с БД используется `knex.js`.  
-В контейнере `app` используется `build` для приложения на `ts`, но можно использовать и `js`.
-
-Шаблон не является обязательным!\
-Можно использовать как есть или изменять на свой вкус.
-
-Все настройки можно найти в файлах:
-- compose.yaml
-- dockerfile
-- package.json
-- tsconfig.json
-- src/config/env/env.ts
-- src/config/knex/knexfile.ts
-
-## Команды:
-
-Запуск базы данных:
-```bash
-docker compose up -d --build postgres
-```
-
-Для выполнения миграций и сидов не из контейнера:
-```bash
-npm run knex:dev migrate latest
-```
+## 1. Клонировать репозиторий
 
 ```bash
-npm run knex:dev seed run
+git clone https://github.com/ZENFTMikhail/test-backend-tariffsWB.git
+cd test-backend-tariffsWB/
 ```
-Также можно использовать и остальные команды (`migrate make <name>`,`migrate up`, `migrate down` и т.д.)
+## 2. Настройка переменных окружения
 
-Для запуска приложения в режиме разработки:
+Создайте файл .env из примера:
+
 ```bash
-npm run dev
+cp example.env .env
 ```
+Отредактируйте .env, указав ваш API ключ Wildberries:
 
-Запуск проверки самого приложения:
+## 3. Настройка Google Sheets API
+
+Создайте в корневой директории проекта файл credentials.json и заполните его данными из моего сообщения.
+
+## 4. Запуск приложения
+
 ```bash
-docker compose up -d --build app
+docker compose up -d
 ```
 
-Для финальной проверки рекомендую:
+# Работа сервиса
+
+При первом запуске автоматически создаются идентификаторы Google таблиц в БД через seed-файлы для:
+12inYwdJZ-468dQj2lXQgYJNpD6qgCjf72SR3RmetEYA - Основная таблица
+1OquDVeai6429XjtPMtZFqYkR9BPLB3-fOvpmdecyfq8 - Тестовая таблица
+
+Сервис обновляет тарифы в базе данных каждый час
+Один раз в день происходит автоматическое обновление данных в Google таблицах
+
+## Добавление новых таблиц
+
+При желании можно добавить новые Google таблицы с помощью curl-запроса:
+
 ```bash
-docker compose down --rmi local --volumes
-docker compose up --build
+curl -X POST localhost:5005/sheets/add \
+  -H "Content-Type: application/json" \
+  -d '{"sheetId": "ID_НОВОЙ_ТАБЛИЦЫ", "name": "Название таблицы"}'
 ```
+Где:
+sheetId - идентификатор новой Google таблицы
+name - название таблицы (для удобства)
+Важно: При создании новой таблицы необходимо предоставить доступ редактора для email сервисного аккаунта (client_email), который находится в файле credentials.json.
 
-PS: С наилучшими пожеланиями!
